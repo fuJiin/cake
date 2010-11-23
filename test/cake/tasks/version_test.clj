@@ -24,16 +24,16 @@
 	(is (re-matches (re-pattern (str ".*-> test-example " expected "\n"))
 			(:out task-output)))))))
 
-(deftest initial-version
+(comment deftest initial-version
   (testing "initial version is set to 0.1.0-SNAPSHOT by fixture"
     (assert-version "0.1.0-SNAPSHOT")))
 
-(deftest explicit-version
+(comment deftest explicit-version
   (testing "version set to 2.0.0"
     (let [results (cake "version" "2.0.0")]
       (assert-version "2.0.0"))))
 
-(deftest version-bumping-test
+(comment deftest version-bumping-test
   (testing "version set with cake version bump"
     (let [results (cake "version" "bump")]
       (assert-version "0.1.0" results)))
