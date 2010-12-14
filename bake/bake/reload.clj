@@ -5,8 +5,19 @@
         [bake.core :only [in-project-classloader? debug?]]
         [bake.dependency :only [graph]]
         [bake.nsdeps :only [newer-namespace-decls newer-than update-dependency-graph affected-namespaces]]
-        [clojure.set :only [union]])
+        [clojure.set :only [union]]
+        [clojure.java.io :only [resource]])
   (:import (java.io File)))
+
+(defn- ns-file [sym ext]
+  (str (-> sym name (.replace "-" "_") (.replace "." "/")) ext))
+
+(defn- has-class-file? [sym]
+  (boolean (resource (ns-file sym ".class"))))
+
+(defn- find-source-file [sym]
+  (when-let [url (resource (ns-file sym ".clj"))]
+    (File. (.getPath url))))
 
 (defn reload-namespaces
   "Remove all specified namespaces then reload them."
@@ -14,6 +25,11 @@
   (doseq [sym symbols]
     (remove-ns sym))
   (dosync (alter @#'clojure.core/*loaded-libs* difference (set symbols)))
+  (doseq [sym symbols]
+    (println "touching symbol:" sym)
+    (when (has-class-file? sym)
+      (when-let [f (find-source-file sym)]
+        (.setLastModified f (System/currentTimeMillis)))))
   (apply require symbols))
 
 (def classpath

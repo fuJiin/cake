@@ -35,7 +35,9 @@
     cl))
 
 (defn reload! []
-  (alter-var-root #'classloader (fn [_] (make-classloader))))
+  (alter-var-root #'classloader (fn [cl]
+;;                                  (when cl (eval-in cl '(shutdown-agents)))
+                                  (make-classloader))))
 
 (defn reload []
   (alter-var-root #'classloader
@@ -78,6 +80,8 @@
     ~'cake/*env*          '~*env*
     ~'cake/*vars*         '~*vars*])
 
+(require 'clojure.stacktrace)
+
 (defn project-eval [ns-forms bindings body]
   (reload)
   (let [[let-bindings object-bindings] (separate-bindings bindings)
@@ -101,6 +105,7 @@
          (catch Throwable e
            (println "error evaluating:")
            (prn body)
+           (clojure.stacktrace/print-cause-trace e)
            (throw e)))))
 
 (defmacro bake
